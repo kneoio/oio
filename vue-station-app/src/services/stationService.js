@@ -4,18 +4,18 @@ import axios from 'axios'
 const mockStations = [
   {
     id: 1,
-    name: 'Chill Vibes FM',
-    genre: 'Lo-fi Hip Hop',
-    mood: 'chill',
-    description: 'Relaxing beats to study and chill to',
-    color: '#4FC3F7',
+    name: 'Lumisonic',
+    genre: 'Live Stream',
+    mood: 'live',
+    description: 'Live HLS stream with real-time metadata',
+    color: '#FF4757',
     imageUrl: 'https://picsum.photos/300/300?random=1',
     audioUrl: 'http://localhost:38798/stream/lumisonic/stream.m3u8',
     isPlaying: false,
     currentSong: {
-      title: 'Midnight Dreams',
-      artist: 'Lofi Producer',
-      tags: ['chill', 'relax', 'study', 'sleep', 'peaceful']
+      title: 'Loading...',
+      artist: 'Unknown',
+      tags: ['live', 'streaming', 'hls', 'real-time']
     }
   },
   {

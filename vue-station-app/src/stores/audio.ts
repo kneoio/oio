@@ -10,9 +10,14 @@ export interface Station {
   description: string
   color: string
   imageUrl: string
-  streamUrl: string
+  audioUrl: string
   isOnline: boolean
   currentListeners?: number
+  currentSong?: {
+    title: string
+    artist: string
+    tags: string[]
+  }
 }
 
 export interface SongInfo {
@@ -78,15 +83,26 @@ export const useAudioStore = defineStore('audio', () => {
 
   const extractID3Metadata = (data: Uint8Array): SongInfo => {
     const text = new TextDecoder('utf-8').decode(data)
+    let title = ''
+    let artist = ''
     
-    // Extract title from TIT2 tag
-    const titleMatch = text.match(/TIT2[^\0]*\0([^\0]*)/)
-    const title = titleMatch ? titleMatch[1].trim() : ''
+    // Parse TIT2 tag (Song title) - must check first
+    if (text.includes('TIT2')) {
+      const match = text.match(/TIT2[^\0]*\0([^\0]*)/)
+      if (match && match[1]) {
+        title = match[1].trim()
+      }
+    }
     
-    // Extract artist from TPE1 tag
-    const artistMatch = text.match(/TPE1[^\0]*\0([^\0]*)/)
-    const artist = artistMatch ? artistMatch[1].trim() : ''
+    // Parse TPE1 tag (Artist) - must check second
+    if (text.includes('TPE1')) {
+      const match = text.match(/TPE1[^\0]*\0([^\0]*)/)
+      if (match && match[1]) {
+        artist = match[1].trim()
+      }
+    }
     
+    // Legacy format: "Artist - Title" (note the order!)
     const display = artist && title ? `${artist} - ${title}` : (title || artist || 'Unknown Song')
     
     return { title, artist, display }
@@ -96,20 +112,25 @@ export const useAudioStore = defineStore('audio', () => {
     try {
       const response = await fetch(url)
       const text = await response.text()
+      const lines = text.split('\n')
       
-      // Look for EXTINF lines which contain song info
-      const extinfMatch = text.match(/#EXTINF:-?\d+,(.+)/m)
-      if (extinfMatch) {
-        const info = extinfMatch[1].trim()
-        
-        // Try to parse "Artist - Title" format
-        const parts = info.split(' - ')
-        if (parts.length >= 2) {
-          const artist = parts[0].trim()
-          const title = parts.slice(1).join(' - ').trim()
-          return { title, artist, display: `${artist} - ${title}` }
-        } else {
-          return { title: info, artist: '', display: info }
+      // Find the last #EXTINF line (current playing song)
+      for (let i = lines.length - 1; i >= 0; i--) {
+        const line = lines[i]
+        if (line.startsWith('#EXTINF:')) {
+          // Extract song info: #EXTINF:6,Song Title - Artist
+          const match = line.match(/#EXTINF:[^,]+,(.+)/)
+          if (match && match[1]) {
+            const songData = match[1].trim()
+            // Parse "Title - Artist" format (note: legacy shows Artist - Title but M3U8 has Title - Artist)
+            const parts = songData.split(' - ')
+            if (parts.length >= 2) {
+              const title = parts[0].trim()
+              const artist = parts.slice(1).join(' - ').trim()
+              return { title, artist, display: `${title} - ${artist}` }
+            }
+            return { title: songData, artist: '', display: songData }
+          }
         }
       }
     } catch (error) {
@@ -123,7 +144,7 @@ export const useAudioStore = defineStore('audio', () => {
     if (!currentStation.value) return
     
     try {
-      const songInfo = await parseM3U8Playlist(currentStation.value.streamUrl)
+      const songInfo = await parseM3U8Playlist(currentStation.value.audioUrl)
       if (songInfo.display && songInfo.display !== currentSong.value.display) {
         currentSong.value = songInfo
       }
@@ -151,7 +172,7 @@ export const useAudioStore = defineStore('audio', () => {
       
       if (isRealNativeHls && audioElement.value.canPlayType('application/vnd.apple.mpegurl')) {
         console.log('Using native HLS (Safari)')
-        audioElement.value.src = station.streamUrl
+        audioElement.value.src = station.audioUrl
         
         // Set up ID3 metadata extraction for Safari
         audioElement.value.addEventListener('loadedmetadata', () => {
@@ -222,7 +243,7 @@ export const useAudioStore = defineStore('audio', () => {
           })
         })
 
-        hlsInstance.value.loadSource(station.streamUrl)
+        hlsInstance.value.loadSource(station.audioUrl)
         hlsInstance.value.attachMedia(audioElement.value)
       } else {
         throw new Error('HLS not supported')
@@ -291,7 +312,7 @@ export const useAudioStore = defineStore('audio', () => {
           description: 'Relaxing beats to study and chill to',
           color: '#4FC3F7',
           imageUrl: 'https://picsum.photos/300/300?random=1',
-          streamUrl: 'http://localhost:38798/stream/lumisonic/stream.m3u8',
+          audioUrl: 'http://localhost:38798/stream/lumisonic/stream.m3u8',
           isOnline: true,
           currentListeners: 1234
         },
@@ -303,7 +324,7 @@ export const useAudioStore = defineStore('audio', () => {
           description: 'The greatest rock hits of all time',
           color: '#FF6B6B',
           imageUrl: 'https://picsum.photos/300/300?random=2',
-          streamUrl: 'http://localhost:38798/stream/lumisonic/stream.m3u8',
+          audioUrl: 'http://localhost:38798/stream/lumisonic/stream.m3u8',
           isOnline: true,
           currentListeners: 892
         },
@@ -315,7 +336,7 @@ export const useAudioStore = defineStore('audio', () => {
           description: 'Deep atmospheric soundscapes',
           color: '#4A148C',
           imageUrl: 'https://picsum.photos/300/300?random=3',
-          streamUrl: 'http://localhost:38798/stream/lumisonic/stream.m3u8',
+          audioUrl: 'http://localhost:38798/stream/lumisonic/stream.m3u8',
           isOnline: false,
           currentListeners: 0
         },
@@ -327,7 +348,7 @@ export const useAudioStore = defineStore('audio', () => {
           description: 'Non-stop electronic dance music',
           color: '#FFD93D',
           imageUrl: 'https://picsum.photos/300/300?random=4',
-          streamUrl: 'http://localhost:38798/stream/lumisonic/stream.m3u8',
+          audioUrl: 'http://localhost:38798/stream/lumisonic/stream.m3u8',
           isOnline: true,
           currentListeners: 2156
         },
@@ -339,7 +360,7 @@ export const useAudioStore = defineStore('audio', () => {
           description: 'Smooth jazz 24/7',
           color: '#00BCD4',
           imageUrl: 'https://picsum.photos/300/300?random=5',
-          streamUrl: 'http://localhost:38798/stream/lumisonic/stream.m3u8',
+          audioUrl: 'http://localhost:38798/stream/lumisonic/stream.m3u8',
           isOnline: true,
           currentListeners: 567
         },
@@ -351,7 +372,7 @@ export const useAudioStore = defineStore('audio', () => {
           description: 'Cutting edge electronic music',
           color: '#9C27B0',
           imageUrl: 'https://picsum.photos/300/300?random=6',
-          streamUrl: 'http://localhost:38798/stream/lumisonic/stream.m3u8',
+          audioUrl: 'http://localhost:38798/stream/lumisonic/stream.m3u8',
           isOnline: true,
           currentListeners: 1443
         }
@@ -363,7 +384,7 @@ export const useAudioStore = defineStore('audio', () => {
       await Promise.all(
         stations.value.map(async (station) => {
           try {
-            const response = await fetch(station.streamUrl, { method: 'HEAD' })
+            const response = await fetch(station.audioUrl, { method: 'HEAD' })
             station.isOnline = response.ok
           } catch {
             station.isOnline = false

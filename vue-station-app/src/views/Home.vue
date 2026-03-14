@@ -1,8 +1,7 @@
 <template>
   <div class="home">
     <header class="header">
-      <h1 ref="title">Mixpla</h1>
-      <p ref="subtitle">Discover your vibe</p>
+      <h2 ref="title">m i x p l a</h2>     
     </header>
     
     <main class="main">
@@ -27,8 +26,15 @@
             <div class="mood-gradient">
             </div>
             <div class="play-overlay">
-              <button class="play-btn" @click.stop="quickPlay(station, $event)">
-                <svg viewBox="0 0 24 24" fill="currentColor">
+              <button 
+                class="play-btn" 
+                :class="{ playing: currentStation?.id === station.id && isPlaying }"
+                @click.stop="quickPlay(station, $event)"
+              >
+                <svg v-if="currentStation?.id === station.id && isPlaying" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                </svg>
+                <svg v-else viewBox="0 0 24 24" fill="currentColor">
                   <path d="M8 5v14l11-7z"/>
                 </svg>
               </button>
@@ -36,7 +42,14 @@
           </div>
           <div class="station-info">
             <h3>{{ station.name }}</h3>
-            <p class="current-song">{{ station.currentSong.title }} - {{ station.currentSong.artist }}</p>
+            <p class="current-song">
+              <span v-if="currentStation?.id === station.id && isPlaying">
+                {{ currentSongTitle }} - {{ currentSongArtist }}
+              </span>
+              <span v-else>
+                {{ station.currentSong?.title }} - {{ station.currentSong?.artist }}
+              </span>
+            </p>
             <div class="tags">
               <span v-for="tag in station.currentSong.tags.slice(0, 3)" :key="tag" class="tag" :data-tag="tag">
                 {{ tag }}
@@ -52,19 +65,32 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import gsap from 'gsap'
 import { stationService } from '../services/stationService'
-import { audioPlayer } from '../services/audioPlayer'
+import { useAudioStore } from '../stores/audio'
 
 export default {
   name: 'Home',
   setup() {
     const router = useRouter()
+    const audioStore = useAudioStore()
     const stations = ref([])
     const loading = ref(true)
     const error = ref(false)
+    
+    // Computed properties from store
+    const isPlaying = computed(() => audioStore.isPlaying)
+    const currentStation = computed(() => audioStore.currentStation)
+    const currentSongTitle = computed(() => audioStore.currentSong.title || 'Loading...')
+    const currentSongArtist = computed(() => audioStore.currentSong.artist || 'Unknown')
+    const currentSongDisplay = computed(() => {
+      if (currentSongArtist.value && currentSongTitle.value) {
+        return `${currentSongArtist.value} - ${currentSongTitle.value}`
+      }
+      return currentSongTitle.value || 'Loading...'
+    })
     
     // Refs for GSAP animations
     const title = ref(null)
@@ -93,19 +119,19 @@ export default {
       router.push(`/station/${id}`)
     }
     
-    const quickPlay = (station, event) => {
+    const quickPlay = async (station, event) => {
       event.stopPropagation()
-      if (audioRef.value && !audioPlayer.audio) {
-        audioPlayer.init(audioRef.value)
+      if (audioRef.value) {
+        audioStore.initializeAudio(audioRef.value)
       }
-      audioPlayer.togglePlay(station.audioUrl, station)
+      await audioStore.togglePlayback(station)
     }
     
     onMounted(() => {
       fetchStations()
       
       if (audioRef.value) {
-        audioPlayer.init(audioRef.value)
+        audioStore.initializeAudio(audioRef.value)
       }
       
       // GSAP Context for animations
@@ -148,6 +174,11 @@ export default {
       stations,
       loading,
       error,
+      isPlaying,
+      currentStation,
+      currentSongTitle,
+      currentSongArtist,
+      currentSongDisplay,
       title,
       subtitle,
       stationGrid,
@@ -164,7 +195,7 @@ export default {
     if (this.ctx) {
       this.ctx.revert()
     }
-    audioPlayer.stop()
+    audioStore.stopPlayback()
   }
 }
 </script>
@@ -182,16 +213,83 @@ export default {
   margin-bottom: 3rem;
 }
 
-.header h1 {
-  font-size: 3rem;
-  margin-bottom: 0.5rem;
+.header h2 {
+  font-size: 1rem;
+  margin-bottom: 0.1rem;
   font-weight: 700;
-  color: white;
+  color: rgba(232, 222, 222, 0.502);
   font-family: 'Kaylon', sans-serif;
 }
 
 .header p {
   font-size: 1.2rem;
+  opacity: 0.9;
+}
+
+/* Now Playing Bar */
+.now-playing-bar {
+  background: linear-gradient(135deg, #ff4757 0%, #ff3838 100%);
+  color: white;
+  padding: 1rem 2rem;
+  margin: 0 auto 2rem auto;
+  max-width: 800px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(255, 71, 87, 0.4);
+  animation: pulse-bar 2s ease-in-out infinite;
+}
+
+@keyframes pulse-bar {
+  0%, 100% { box-shadow: 0 4px 20px rgba(255, 71, 87, 0.4); }
+  50% { box-shadow: 0 4px 30px rgba(255, 71, 87, 0.7); }
+}
+
+.now-playing-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.live-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+}
+
+.live-dot {
+  width: 10px;
+  height: 10px;
+  background: #00ff00;
+  border-radius: 50%;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.live-text {
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+}
+
+.song-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.station-name {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.song-details {
+  font-size: 0.9rem;
   opacity: 0.9;
 }
 
@@ -280,28 +378,43 @@ export default {
 }
 
 .play-btn {
-  width: 60px;
-  height: 60px;
-  background: rgba(0, 0, 0, 0.8);
-  border: none;
+  width: 80px;
+  height: 80px;
+  background: rgba(0, 0, 0, 0.9);
+  border: 3px solid rgba(255, 255, 255, 0.4);
   border-radius: 50%;
   color: white;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s ease, background 0.2s ease;
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
 }
 
 .play-btn:hover {
-  transform: scale(1.1);
+  transform: scale(1.15);
   background: rgba(0, 0, 0, 1);
+  border-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.7);
+}
+
+.play-btn.playing {
+  background: #ff4757;
+  border-color: #ff4757;
+  box-shadow: 0 0 20px rgba(255, 71, 87, 0.8), 0 0 40px rgba(255, 71, 87, 0.5);
+  animation: pulse-play 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-play {
+  0%, 100% { box-shadow: 0 0 20px rgba(255, 71, 87, 0.8), 0 0 40px rgba(255, 71, 87, 0.5); }
+  50% { box-shadow: 0 0 30px rgba(255, 71, 87, 1), 0 0 60px rgba(255, 71, 87, 0.7); }
 }
 
 .play-btn svg {
-  width: 24px;
-  height: 24px;
-  margin-left: 2px;
+  width: 32px;
+  height: 32px;
+  margin-left: 3px;
 }
 
 .station-info {

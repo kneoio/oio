@@ -6,6 +6,7 @@ class AudioPlayer {
     this.audio = null
     this.isPlaying = false
     this.currentStation = null
+    this.currentSong = { title: '', artist: '', display: '' }
     this.eventListeners = new Map()
   }
 
@@ -46,6 +47,23 @@ class AudioPlayer {
     if (this.eventListeners.has(event)) {
       this.eventListeners.get(event).forEach(callback => callback(data))
     }
+  }
+
+  // Extract ID3 metadata from TIT2 and TPE1 tags
+  extractID3Metadata(data) {
+    const text = new TextDecoder('utf-8').decode(data)
+    
+    // Extract title from TIT2 tag: /TIT2[^\0]*\0([^\0]*)/
+    const titleMatch = text.match(/TIT2[^\0]*\0([^\0]*)/)
+    const title = titleMatch ? titleMatch[1].trim() : ''
+    
+    // Extract artist from TPE1 tag: /TPE1[^\0]*\0([^\0]*)/
+    const artistMatch = text.match(/TPE1[^\0]*\0([^\0]*)/)
+    const artist = artistMatch ? artistMatch[1].trim() : ''
+    
+    const display = artist && title ? `${artist} - ${title}` : (title || artist || 'Unknown Song')
+    
+    return { title, artist, display }
   }
 
   async playStream(url, station) {
@@ -111,9 +129,23 @@ class AudioPlayer {
       console.log('Manifest loaded')
     })
 
-    this.hls.on(Hls.Events.MANIFEST_PARSED, (e, data) => {
-      console.log(`Manifest parsed — ${data.levels.length} level(s)`)
+    this.hls.on(Hls.Events.MANIFEST_PARSED, () => {
+      console.log('Manifest parsed, starting playback')
       this.audio.play().catch(e => console.error('play() rejected:', e.message))
+    })
+
+    this.hls.on(Hls.Events.FRAG_PARSING_METADATA, (_, data) => {
+      console.log('Received ID3 metadata')
+      data.samples.forEach((sample) => {
+        if (sample.data) {
+          const songInfo = this.extractID3Metadata(sample.data)
+          if (songInfo.display && songInfo.display !== this.currentSong.display) {
+            this.currentSong = songInfo
+            console.log('Updated song from ID3:', songInfo.display)
+            this.emit('metadata', songInfo)
+          }
+        }
+      })
     })
 
     this.hls.on(Hls.Events.ERROR, (e, data) => {
@@ -138,9 +170,72 @@ class AudioPlayer {
     this.hls.attachMedia(this.audio)
   }
 
+  // Parse M3U8 playlist to get song info from #EXTINF lines
+  async parseM3U8(url) {
+    try {
+      const response = await fetch(url)
+      const text = await response.text()
+      
+      // Find #EXTINF lines with song info
+      const lines = text.split('\n')
+      for (const line of lines) {
+        if (line.startsWith('#EXTINF:')) {
+          // Format: #EXTINF:6,Song Title - Artist Name
+          const match = line.match(/#EXTINF:\d+,(.+)/)
+          if (match) {
+            const songData = match[1].trim()
+            // Parse "Title - Artist" format
+            const parts = songData.split(' - ')
+            if (parts.length >= 2) {
+              const title = parts[0].trim()
+              const artist = parts.slice(1).join(' - ').trim()
+              return { title, artist, display: `${title} - ${artist}` }
+            }
+            return { title: songData, artist: '', display: songData }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error parsing M3U8:', error)
+    }
+    return { title: '', artist: '', display: 'Unknown Song' }
+  }
+
+  // Start polling M3U8 for song updates
+  startM3U8Polling(url) {
+    // Clear existing interval
+    if (this.m3u8Interval) {
+      clearInterval(this.m3u8Interval)
+    }
+    
+    // Parse immediately
+    this.parseM3U8(url).then(songInfo => {
+      if (songInfo.display && songInfo.display !== this.currentSong.display) {
+        this.currentSong = songInfo
+        this.emit('metadata', songInfo)
+      }
+    })
+    
+    // Poll every 5 seconds
+    this.m3u8Interval = setInterval(() => {
+      this.parseM3U8(url).then(songInfo => {
+        if (songInfo.display && songInfo.display !== this.currentSong.display) {
+          this.currentSong = songInfo
+          this.emit('metadata', songInfo)
+        }
+      })
+    }, 5000)
+  }
+
   stop() {
     this.isPlaying = false
     this.currentStation = null
+    
+    // Clear M3U8 polling
+    if (this.m3u8Interval) {
+      clearInterval(this.m3u8Interval)
+      this.m3u8Interval = null
+    }
 
     if (this.hls) {
       this.hls.destroy()
@@ -166,7 +261,8 @@ class AudioPlayer {
   getStatus() {
     return {
       isPlaying: this.isPlaying,
-      currentStation: this.currentStation
+      currentStation: this.currentStation,
+      currentSong: this.currentSong
     }
   }
 }
