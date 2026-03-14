@@ -63,10 +63,13 @@ onMounted(() => {
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   overflow-x: hidden;
+  background-color: #0a0a0a;
+  color: #ffffff;
 }
 
 .app {
   min-height: 100vh;
+  background-color: #0a0a0a;
 }
 
 /* Page transition styles */

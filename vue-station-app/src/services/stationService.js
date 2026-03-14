@@ -6,55 +6,91 @@ const mockStations = [
     id: 1,
     name: 'Chill Vibes FM',
     genre: 'Lo-fi Hip Hop',
+    mood: 'chill',
     description: 'Relaxing beats to study and chill to',
-    imageUrl: 'https://picsum.photos/300/300?random=1',
+    color: '#4FC3F7',
     audioUrl: 'https://example.com/audio1.mp3',
-    isPlaying: false
+    isPlaying: false,
+    currentSong: {
+      title: 'Midnight Dreams',
+      artist: 'Lofi Producer',
+      tags: ['chill', 'relax', 'study', 'sleep', 'peaceful']
+    }
   },
   {
     id: 2,
     name: 'Rock Legends',
     genre: 'Classic Rock',
+    mood: 'rock',
     description: 'The greatest rock hits of all time',
-    imageUrl: 'https://picsum.photos/300/300?random=2',
+    color: '#FF6B6B',
     audioUrl: 'https://example.com/audio2.mp3',
-    isPlaying: false
+    isPlaying: false,
+    currentSong: {
+      title: 'Highway Thunder',
+      artist: 'The Rebels',
+      tags: ['rock', 'energetic', 'classic', 'guitar', 'power']
+    }
   },
   {
     id: 3,
-    name: 'Jazz Central',
-    genre: 'Jazz',
-    description: 'Smooth jazz 24/7',
-    imageUrl: 'https://picsum.photos/300/300?random=3',
+    name: 'Dark Waves',
+    genre: 'Dark Ambient',
+    mood: 'dark',
+    description: 'Deep atmospheric soundscapes',
+    color: '#4A148C',
     audioUrl: 'https://example.com/audio3.mp3',
-    isPlaying: false
+    isPlaying: false,
+    currentSong: {
+      title: 'Void Walker',
+      artist: 'Shadow Collective',
+      tags: ['dark', 'ambient', 'atmospheric', 'deep', 'mysterious']
+    }
   },
   {
     id: 4,
-    name: 'Electronic Pulse',
+    name: 'Dance Floor',
     genre: 'EDM',
+    mood: 'energetic',
     description: 'Non-stop electronic dance music',
-    imageUrl: 'https://picsum.photos/300/300?random=4',
+    color: '#FFD93D',
     audioUrl: 'https://example.com/audio4.mp3',
-    isPlaying: false
+    isPlaying: false,
+    currentSong: {
+      title: 'Neon Nights',
+      artist: 'DJ Pulse',
+      tags: ['dance', 'energetic', 'party', 'bass', 'upbeat']
+    }
   },
   {
     id: 5,
-    name: 'Classical Harmony',
-    genre: 'Classical',
-    description: 'Timeless classical masterpieces',
-    imageUrl: 'https://picsum.photos/300/300?random=5',
+    name: 'Sad Songs',
+    genre: 'Emotional',
+    mood: 'sad',
+    description: 'Melancholic melodies for deep feelings',
+    color: '#6C63FF',
     audioUrl: 'https://example.com/audio5.mp3',
-    isPlaying: false
+    isPlaying: false,
+    currentSong: {
+      title: 'Rainy Tears',
+      artist: 'Melancholy Hearts',
+      tags: ['sad', 'emotional', 'heartbreak', 'rain', 'melancholy']
+    }
   },
   {
     id: 6,
-    name: 'Pop Hits Radio',
-    genre: 'Pop',
-    description: 'The latest pop hits and chart toppers',
-    imageUrl: 'https://picsum.photos/300/300?random=6',
+    name: 'Jazz Central',
+    genre: 'Jazz',
+    mood: 'chill',
+    description: 'Smooth jazz 24/7',
+    color: '#00BCD4',
     audioUrl: 'https://example.com/audio6.mp3',
-    isPlaying: false
+    isPlaying: false,
+    currentSong: {
+      title: 'Blue Monday',
+      artist: 'Jazz Ensemble',
+      tags: ['jazz', 'smooth', 'chill', 'saxophone', 'classy']
+    }
   }
 ]
 

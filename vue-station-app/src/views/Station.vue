@@ -19,7 +19,8 @@
     <div v-else-if="station" class="station-detail" ref="stationDetail">
       <div class="station-header">
         <div class="station-image-large" ref="stationImage">
-          <img :src="station.imageUrl" :alt="station.name" />
+          <div class="mood-gradient-large">
+          </div>
           <div class="now-playing" v-if="isPlaying" ref="nowPlaying">
             <span>NOW PLAYING</span>
             <div class="audio-wave">
@@ -35,8 +36,15 @@
         <div class="station-info-large" ref="stationInfo">
           <h1>{{ station.name }}</h1>
           <p class="genre">{{ station.genre }}</p>
-          <p class="description">{{ station.description }}</p>
-          
+          <div class="now-playing-info">
+            <h2>{{ station.currentSong.title }}</h2>
+            <p class="artist">{{ station.currentSong.artist }}</p>
+            <div class="tags-large">
+              <span v-for="tag in station.currentSong.tags" :key="tag" class="tag-large" :data-tag="tag">
+                {{ tag }}
+              </span>
+            </div>
+          </div>
           <div class="player-controls" ref="playerControls">
             <button 
               class="main-play-btn" 
@@ -72,7 +80,9 @@
         <h2>More from {{ station.genre }}</h2>
         <div class="similar-stations">
           <div v-for="n in 3" :key="n" class="similar-station-card">
-            <img :src="`https://picsum.photos/100/100?random=${station.id + n}`" alt="Similar station" />
+            <div class="similar-mood" :style="{ background: `linear-gradient(135deg, ${getSimilarMoodColor(n)}22, ${getSimilarMoodColor(n)})` }">
+              <span>{{ getSimilarMood(n) }}</span>
+            </div>
             <div class="similar-info">
               <h4>Similar Station {{ n }}</h4>
               <p>{{ station.genre }}</p>
@@ -187,6 +197,16 @@ export default {
       router.push('/')
     }
     
+    const getSimilarMood = (index) => {
+      const moods = ['DANCE', 'ROCK', 'CHILL']
+      return moods[index - 1]
+    }
+    
+    const getSimilarMoodColor = (index) => {
+      const colors = ['#FFD93D', '#FF6B6B', '#4FC3F7']
+      return colors[index - 1]
+    }
+    
     onMounted(() => {
       fetchStation()
       
@@ -288,7 +308,9 @@ export default {
       nowPlaying,
       additionalContent,
       togglePlay,
-      goBack
+      goBack,
+      getSimilarMood,
+      getSimilarMoodColor
     }
   },
   
@@ -303,7 +325,7 @@ export default {
 <style scoped>
 .station {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #0a0a0a;
   padding: 2rem;
 }
 
@@ -311,8 +333,8 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
   border-radius: 25px;
   padding: 0.8rem 1.5rem;
   color: white;
@@ -322,7 +344,7 @@ export default {
 }
 
 .back-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: #2a2a2a;
   transform: translateX(-5px);
 }
 
@@ -342,7 +364,8 @@ export default {
   width: 100%;
   max-width: 800px;
   height: 400px;
-  background: rgba(255, 255, 255, 0.1);
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
   border-radius: 20px;
   animation: pulse 1.5s ease-in-out infinite alternate;
 }
@@ -365,7 +388,7 @@ export default {
 .retry-btn {
   margin-top: 1rem;
   padding: 0.8rem 2rem;
-  background: #0ae448;
+  background: #ff4757;
   border: none;
   border-radius: 25px;
   color: white;
@@ -375,7 +398,7 @@ export default {
 }
 
 .retry-btn:hover {
-  background: #0bc34a;
+  background: #ff3838;
 }
 
 .station-detail {
@@ -395,10 +418,20 @@ export default {
   position: relative;
 }
 
-.station-image-large img {
+.mood-gradient-large {
   width: 100%;
+  height: 400px;
   border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: transform 0.3s ease;
+  background: transparent;
+}
+
+.station-image-large:hover .mood-gradient-large {
+  transform: scale(1.02);
 }
 
 .now-playing {
@@ -406,7 +439,7 @@ export default {
   bottom: 20px;
   left: 20px;
   right: 20px;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.9);
   backdrop-filter: blur(10px);
   border-radius: 10px;
   padding: 1rem;
@@ -431,13 +464,19 @@ export default {
 .audio-wave span {
   width: 3px;
   height: 20px;
-  background: #0ae448;
+  background: #ff4757;
   border-radius: 3px;
   transform-origin: center;
 }
 
 .station-info-large {
   color: white;
+}
+
+.station-info-large p {
+  opacity: 0.9;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
 }
 
 .station-info-large h1 {
@@ -459,6 +498,80 @@ export default {
   margin-bottom: 2rem;
 }
 
+.now-playing-info {
+  margin: 2rem 0;
+}
+
+.now-playing-info h2 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: var(--glow, #ff4757);
+  text-shadow: 0 0 20px var(--glow, #ff4757);
+}
+
+.artist {
+  font-size: 1.2rem !important;
+  opacity: 0.8 !important;
+  margin-bottom: 1.5rem !important;
+}
+
+.tags-large {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.tag-large {
+  font-size: 0.9rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 15px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tag-large[data-tag="chill"], .tag-large[data-tag="relax"], .tag-large[data-tag="peaceful"], .tag-large[data-tag="sleep"], .tag-large[data-tag="smooth"], .tag-large[data-tag="classy"] {
+  background: rgba(79, 195, 247, 0.2);
+  color: #4FC3F7;
+  border: 1px solid #4FC3F7;
+  box-shadow: 0 0 10px rgba(79, 195, 247, 0.3);
+}
+
+.tag-large[data-tag="rock"], .tag-large[data-tag="power"], .tag-large[data-tag="guitar"], .tag-large[data-tag="classic"] {
+  background: rgba(255, 107, 107, 0.2);
+  color: #FF6B6B;
+  border: 1px solid #FF6B6B;
+  box-shadow: 0 0 10px rgba(255, 107, 107, 0.3);
+}
+
+.tag-large[data-tag="dark"], .tag-large[data-tag="ambient"], .tag-large[data-tag="atmospheric"], .tag-large[data-tag="deep"], .tag-large[data-tag="mysterious"] {
+  background: rgba(74, 20, 140, 0.2);
+  color: #9C27B0;
+  border: 1px solid #9C27B0;
+  box-shadow: 0 0 10px rgba(156, 39, 176, 0.3);
+}
+
+.tag-large[data-tag="dance"], .tag-large[data-tag="party"], .tag-large[data-tag="bass"], .tag-large[data-tag="upbeat"] {
+  background: rgba(255, 217, 61, 0.2);
+  color: #FFD93D;
+  border: 1px solid #FFD93D;
+  box-shadow: 0 0 10px rgba(255, 217, 61, 0.3);
+}
+
+.tag-large[data-tag="sad"], .tag-large[data-tag="emotional"], .tag-large[data-tag="heartbreak"], .tag-large[data-tag="melancholy"], .tag-large[data-tag="rain"] {
+  background: rgba(108, 99, 255, 0.2);
+  color: #6C63FF;
+  border: 1px solid #6C63FF;
+  box-shadow: 0 0 10px rgba(108, 99, 255, 0.3);
+}
+
+.tag-large[data-tag="jazz"], .tag-large[data-tag="saxophone"], .tag-large[data-tag="study"] {
+  background: rgba(0, 188, 212, 0.2);
+  color: #00BCD4;
+  border: 1px solid #00BCD4;
+  box-shadow: 0 0 10px rgba(0, 188, 212, 0.3);
+}
+
 .player-controls {
   display: flex;
   align-items: center;
@@ -468,7 +581,7 @@ export default {
 .main-play-btn {
   width: 80px;
   height: 80px;
-  background: #0ae448;
+  background: #ff4757;
   border: none;
   border-radius: 50%;
   color: white;
@@ -477,17 +590,15 @@ export default {
   align-items: center;
   justify-content: center;
   transition: transform 0.2s ease, background 0.2s ease;
-  box-shadow: 0 10px 30px rgba(10, 228, 72, 0.3);
 }
 
 .main-play-btn:hover {
   transform: scale(1.05);
-  background: #0bc34a;
+  background: #ff3838;
 }
 
 .main-play-btn.playing {
-  background: #ff4757;
-  box-shadow: 0 10px 30px rgba(255, 71, 87, 0.3);
+  background: #2a2a2a;
 }
 
 .main-play-btn svg {
@@ -503,8 +614,8 @@ export default {
 .control-btn {
   width: 50px;
   height: 50px;
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
   border-radius: 50%;
   color: white;
   cursor: pointer;
@@ -515,7 +626,7 @@ export default {
 }
 
 .control-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: #2a2a2a;
   transform: scale(1.1);
 }
 
@@ -543,8 +654,8 @@ export default {
   display: flex;
   align-items: center;
   gap: 1rem;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
   padding: 1rem;
   border-radius: 10px;
   cursor: pointer;
@@ -553,13 +664,26 @@ export default {
 
 .similar-station-card:hover {
   transform: translateY(-5px);
-  background: rgba(255, 255, 255, 0.15);
+  background: #2a2a2a;
 }
 
 .similar-station-card img {
   width: 50px;
   height: 50px;
   border-radius: 8px;
+}
+
+.similar-mood {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 .similar-info h4 {
