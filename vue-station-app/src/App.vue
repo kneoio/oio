@@ -54,6 +54,20 @@ onMounted(() => {
 </template>
 
 <style>
+@font-face {
+  font-family: 'Kaylon';
+  src: url('/src/assets/fonts/kaylon.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Kaylon';
+  src: url('/src/assets/fonts/kaylon.ttf') format('truetype');
+  font-weight: 700;
+  font-display: swap;
+}
+
 * {
   margin: 0;
   padding: 0;

@@ -1,8 +1,8 @@
 <template>
   <div class="home">
     <header class="header">
-      <h1 ref="title">Radio Stations</h1>
-      <p ref="subtitle">Choose your favorite station</p>
+      <h1 ref="title">Mixpla</h1>
+      <p ref="subtitle">Discover your vibe</p>
     </header>
     
     <main class="main">
@@ -167,6 +167,8 @@ export default {
   font-size: 3rem;
   margin-bottom: 0.5rem;
   font-weight: 700;
+  color: white;
+  font-family: 'Kaylon', sans-serif;
 }
 
 .header p {
