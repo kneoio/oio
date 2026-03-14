@@ -27,7 +27,7 @@
             <div class="mood-gradient">
             </div>
             <div class="play-overlay">
-              <button class="play-btn" @click.stop="goToStation(station.id)">
+              <button class="play-btn" @click.stop="quickPlay(station, $event)">
                 <svg viewBox="0 0 24 24" fill="currentColor">
                   <path d="M8 5v14l11-7z"/>
                 </svg>
@@ -46,6 +46,8 @@
         </div>
       </div>
     </main>
+    
+    <audio ref="audioRef" style="display: none;"></audio>
   </div>
 </template>
 
@@ -54,6 +56,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import gsap from 'gsap'
 import { stationService } from '../services/stationService'
+import { audioPlayer } from '../services/audioPlayer'
 
 export default {
   name: 'Home',
@@ -68,6 +71,7 @@ export default {
     const subtitle = ref(null)
     const stationGrid = ref(null)
     const stationCards = ref([])
+    const audioRef = ref(null)
     
     let ctx
     
@@ -89,8 +93,20 @@ export default {
       router.push(`/station/${id}`)
     }
     
+    const quickPlay = (station, event) => {
+      event.stopPropagation()
+      if (audioRef.value && !audioPlayer.audio) {
+        audioPlayer.init(audioRef.value)
+      }
+      audioPlayer.togglePlay(station.audioUrl, station)
+    }
+    
     onMounted(() => {
       fetchStations()
+      
+      if (audioRef.value) {
+        audioPlayer.init(audioRef.value)
+      }
       
       // GSAP Context for animations
       ctx = gsap.context((self) => {
@@ -136,8 +152,10 @@ export default {
       subtitle,
       stationGrid,
       stationCards,
+      audioRef,
       fetchStations,
       goToStation,
+      quickPlay,
       ctx
     }
   },
@@ -146,6 +164,7 @@ export default {
     if (this.ctx) {
       this.ctx.revert()
     }
+    audioPlayer.stop()
   }
 }
 </script>

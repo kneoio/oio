@@ -91,6 +91,8 @@
         </div>
       </div>
     </div>
+    
+    <audio ref="audioRef" style="display: none;"></audio>
   </div>
 </template>
 
@@ -99,6 +101,7 @@ import { ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import gsap from 'gsap'
 import { stationService } from '../services/stationService'
+import { audioPlayer } from '../services/audioPlayer'
 
 export default {
   name: 'Station',
@@ -127,6 +130,7 @@ export default {
     const nextBtn = ref(null)
     const nowPlaying = ref(null)
     const additionalContent = ref(null)
+    const audioRef = ref(null)
     
     let ctx
     let playAnimation
@@ -146,7 +150,10 @@ export default {
     }
     
     const togglePlay = () => {
-      isPlaying.value = !isPlaying.value
+      if (!station.value) return
+      
+      audioPlayer.togglePlay(station.value.audioUrl, station.value)
+      isPlaying.value = audioPlayer.getStatus().isPlaying
       
       if (isPlaying.value) {
         // Animate play button to pause state
@@ -209,6 +216,10 @@ export default {
     
     onMounted(() => {
       fetchStation()
+      
+      if (audioRef.value) {
+        audioPlayer.init(audioRef.value)
+      }
       
       // GSAP Context for animations
       ctx = gsap.context((self) => {
@@ -307,6 +318,7 @@ export default {
       nextBtn,
       nowPlaying,
       additionalContent,
+      audioRef,
       togglePlay,
       goBack,
       getSimilarMood,
@@ -318,6 +330,7 @@ export default {
     if (this.ctx) {
       this.ctx.revert()
     }
+    audioPlayer.stop()
   }
 }
 </script>
