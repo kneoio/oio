@@ -7,7 +7,7 @@ app.use(express.static(path.join(__dirname, 'dist'), { index: false }));
 
 app.get('/health', (req, res) => res.status(200).send('OK'));
 
-app.get('*', (req, res) => {
+app.get('/{*path}', (req, res) => {
     if (req.url.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|map)$/)) {
         return res.status(404).send('Not found');
     }
