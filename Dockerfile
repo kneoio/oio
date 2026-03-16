@@ -1,8 +1,14 @@
-FROM eclipse-temurin:21-jre-jammy
-RUN groupadd -r oio && useradd -r -g oio oio
+FROM node:20-alpine AS builder
 WORKDIR /app
-COPY target/oio-*-runner.jar app.jar
-RUN chown oio:oio app.jar
-USER oio
-EXPOSE 8080 38798
-ENTRYPOINT ["java", "--add-opens=java.base/java.lang=ALL-UNNAMED", "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED", "-jar", "app.jar"]
+COPY vue-station-app/package*.json ./
+RUN npm ci
+COPY vue-station-app/ .
+RUN npm run build
+
+FROM node:20-alpine
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
+COPY server.cjs ./
+RUN npm install express
+EXPOSE 8092
+CMD ["node", "server.cjs"]
