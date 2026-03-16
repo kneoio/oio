@@ -19,7 +19,7 @@
           v-for="station in stations" 
           :key="station.id"
           class="station-card"
-          @click="goToStation(station.id)"
+          @click="goToStation(station)"
           ref="stationCards"
         >
           <div class="station-image">
@@ -68,17 +68,17 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import gsap from 'gsap'
-import { stationService } from '../services/stationService'
 import { useAudioStore } from '../stores/audio'
+import { useBrandsStore } from '../stores/brands'
 
 export default {
   name: 'Home',
   setup() {
-    const router = useRouter()
     const audioStore = useAudioStore()
+    const brandsStore = useBrandsStore()
     const stations = ref([])
-    const loading = ref(true)
-    const error = ref(false)
+    const loading = computed(() => brandsStore.loading)
+    const error = computed(() => brandsStore.error)
     
     // Computed properties from store
     const isPlaying = computed(() => audioStore.isPlaying)
@@ -102,21 +102,34 @@ export default {
     let ctx
     
     const fetchStations = async () => {
-      loading.value = true
       error.value = false
       try {
-        const response = await stationService.getAllStations()
-        stations.value = response.data
+        await brandsStore.fetchAll()
+        // Map brands to station format
+        stations.value = brandsStore.getEntries.map(brand => ({
+          id: brand.id,
+          name: brand.localizedName?.en || brand.slugName,
+          slug: brand.slugName,
+          genre: brand.managedBy || 'Radio',
+          description: brand.description || '',
+          color: brand.color || '#FF4757',
+          imageUrl: `https://picsum.photos/300/300?random=${brand.id.charCodeAt(0) % 10}`,
+          audioUrl: brand.mixplaUrl || '',
+          isOnline: brand.status === 'ON_LINE',
+          status: brand.status,
+          currentSong: {
+            title: brand.status === 'ON_LINE' ? 'Streaming Live' : 'Offline',
+            artist: brand.country || 'Unknown',
+            tags: [brand.country, brand.managedBy, brand.status].filter(Boolean)
+          }
+        }))
       } catch (err) {
-        error.value = true
         console.error('Error fetching stations:', err)
-      } finally {
-        loading.value = false
       }
     }
     
-    const goToStation = (id) => {
-      router.push(`/station/${id}`)
+    const goToStation = (station) => {
+      router.push(`/station/${station.slug}`)
     }
     
     const quickPlay = async (station, event) => {
