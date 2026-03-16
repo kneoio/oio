@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import Hls from 'hls.js'
+import { getStreamUrl, DEFAULT_STREAM_PATH } from '@/config/stream.js'
 
 export interface Station {
   id: number
@@ -312,7 +313,7 @@ export const useAudioStore = defineStore('audio', () => {
           description: 'Relaxing beats to study and chill to',
           color: '#4FC3F7',
           imageUrl: 'https://picsum.photos/300/300?random=1',
-          audioUrl: 'http://localhost:38798/stream/lumisonic/stream.m3u8',
+          audioUrl: getStreamUrl(DEFAULT_STREAM_PATH),
           isOnline: true,
           currentListeners: 1234
         },
@@ -324,7 +325,7 @@ export const useAudioStore = defineStore('audio', () => {
           description: 'The greatest rock hits of all time',
           color: '#FF6B6B',
           imageUrl: 'https://picsum.photos/300/300?random=2',
-          audioUrl: 'http://localhost:38798/stream/lumisonic/stream.m3u8',
+          audioUrl: getStreamUrl(DEFAULT_STREAM_PATH),
           isOnline: true,
           currentListeners: 892
         },
@@ -336,7 +337,7 @@ export const useAudioStore = defineStore('audio', () => {
           description: 'Deep atmospheric soundscapes',
           color: '#4A148C',
           imageUrl: 'https://picsum.photos/300/300?random=3',
-          audioUrl: 'http://localhost:38798/stream/lumisonic/stream.m3u8',
+          audioUrl: getStreamUrl(DEFAULT_STREAM_PATH),
           isOnline: false,
           currentListeners: 0
         },
@@ -348,7 +349,7 @@ export const useAudioStore = defineStore('audio', () => {
           description: 'Non-stop electronic dance music',
           color: '#FFD93D',
           imageUrl: 'https://picsum.photos/300/300?random=4',
-          audioUrl: 'http://localhost:38798/stream/lumisonic/stream.m3u8',
+          audioUrl: getStreamUrl(DEFAULT_STREAM_PATH),
           isOnline: true,
           currentListeners: 2156
         },
@@ -360,7 +361,7 @@ export const useAudioStore = defineStore('audio', () => {
           description: 'Smooth jazz 24/7',
           color: '#00BCD4',
           imageUrl: 'https://picsum.photos/300/300?random=5',
-          audioUrl: 'http://localhost:38798/stream/lumisonic/stream.m3u8',
+          audioUrl: getStreamUrl(DEFAULT_STREAM_PATH),
           isOnline: true,
           currentListeners: 567
         },
@@ -372,7 +373,7 @@ export const useAudioStore = defineStore('audio', () => {
           description: 'Cutting edge electronic music',
           color: '#9C27B0',
           imageUrl: 'https://picsum.photos/300/300?random=6',
-          audioUrl: 'http://localhost:38798/stream/lumisonic/stream.m3u8',
+          audioUrl: getStreamUrl(DEFAULT_STREAM_PATH),
           isOnline: true,
           currentListeners: 1443
         }

@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { getStreamUrl, DEFAULT_STREAM_PATH } from '@/config/stream.js'
 
 // Mock station data
 const mockStations = [
@@ -10,7 +11,7 @@ const mockStations = [
     description: 'Live HLS stream with real-time metadata',
     color: '#FF4757',
     imageUrl: 'https://picsum.photos/300/300?random=1',
-    audioUrl: 'http://localhost:38798/stream/lumisonic/stream.m3u8',
+    audioUrl: getStreamUrl(DEFAULT_STREAM_PATH),
     isPlaying: false,
     currentSong: {
       title: 'Loading...',
@@ -26,7 +27,7 @@ const mockStations = [
     description: 'The greatest rock hits of all time',
     color: '#FF6B6B',
     imageUrl: 'https://picsum.photos/300/300?random=2',
-    audioUrl: 'http://localhost:38798/stream/lumisonic/stream.m3u8',
+    audioUrl: getStreamUrl(DEFAULT_STREAM_PATH),
     isPlaying: false,
     currentSong: {
       title: 'Highway Thunder',
@@ -42,7 +43,7 @@ const mockStations = [
     description: 'Deep atmospheric soundscapes',
     color: '#4A148C',
     imageUrl: 'https://picsum.photos/300/300?random=3',
-    audioUrl: 'http://localhost:38798/stream/lumisonic/stream.m3u8',
+    audioUrl: getStreamUrl(DEFAULT_STREAM_PATH),
     isPlaying: false,
     currentSong: {
       title: 'Void Walker',
@@ -58,7 +59,7 @@ const mockStations = [
     description: 'Non-stop electronic dance music',
     color: '#FFD93D',
     imageUrl: 'https://picsum.photos/300/300?random=4',
-    audioUrl: 'http://localhost:38798/stream/lumisonic/stream.m3u8',
+    audioUrl: getStreamUrl(DEFAULT_STREAM_PATH),
     isPlaying: false,
     currentSong: {
       title: 'Neon Nights',
@@ -74,7 +75,7 @@ const mockStations = [
     description: 'Melancholic melodies for deep feelings',
     color: '#6C63FF',
     imageUrl: 'https://picsum.photos/300/300?random=5',
-    audioUrl: 'http://localhost:38798/stream/lumisonic/stream.m3u8',
+    audioUrl: getStreamUrl(DEFAULT_STREAM_PATH),
     isPlaying: false,
     currentSong: {
       title: 'Rainy Tears',
@@ -90,7 +91,7 @@ const mockStations = [
     description: 'Smooth jazz 24/7',
     color: '#00BCD4',
     imageUrl: 'https://picsum.photos/300/300?random=6',
-    audioUrl: 'http://localhost:38798/stream/lumisonic/stream.m3u8',
+    audioUrl: getStreamUrl(DEFAULT_STREAM_PATH),
     isPlaying: false,
     currentSong: {
       title: 'Blue Monday',
