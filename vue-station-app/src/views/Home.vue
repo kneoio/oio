@@ -195,6 +195,7 @@ export default {
     if (this.ctx) {
       this.ctx.revert()
     }
+    const audioStore = useAudioStore()
     audioStore.stopPlayback()
   }
 }
@@ -371,6 +372,11 @@ export default {
   justify-content: center;
   opacity: 1;
   transition: background 0.3s ease;
+  pointer-events: none; /* Allow clicks to pass through to card */
+}
+
+.play-overlay .play-btn {
+  pointer-events: auto; /* Re-enable clicks on the button itself */
 }
 
 .station-card:hover .play-overlay {
