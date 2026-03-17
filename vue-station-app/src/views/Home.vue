@@ -70,6 +70,7 @@ import { useRouter } from 'vue-router'
 import gsap from 'gsap'
 import { useAudioStore } from '../stores/audio'
 import { useBrandsStore } from '../stores/brands'
+import { getStreamUrl } from '@/config/stream.js'
 
 export default {
   name: 'Home',
@@ -114,7 +115,7 @@ export default {
           description: brand.description || '',
           color: brand.color || '#FF4757',
           imageUrl: `https://picsum.photos/300/300?random=${brand.id.charCodeAt(0) % 10}`,
-          audioUrl: brand.mixplaUrl || '',
+          audioUrl: getStreamUrl(brand.slugName),
           isOnline: brand.status === 'ON_LINE',
           status: brand.status,
           currentSong: {

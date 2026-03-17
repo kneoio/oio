@@ -97,11 +97,12 @@
 </template>
 
 <script>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import gsap from 'gsap'
-import { stationService } from '../services/stationService'
-import { audioPlayer } from '../services/audioPlayer'
+import { useBrandsStore } from '../stores/brands'
+import { useAudioStore } from '../stores/audio'
+import { getStreamUrl } from '@/config/stream.js'
 
 export default {
   name: 'Station',
@@ -114,10 +115,13 @@ export default {
   setup(props) {
     const router = useRouter()
     const route = useRoute()
+    const brandsStore = useBrandsStore()
+    const audioStore = useAudioStore()
+    
     const station = ref(null)
-    const loading = ref(true)
-    const error = ref(false)
-    const isPlaying = ref(false)
+    const loading = computed(() => brandsStore.loading)
+    const error = computed(() => brandsStore.error || !station.value)
+    const isPlaying = computed(() => audioStore.isPlaying && audioStore.currentStation?.id === station.value?.id)
     
     // Refs for GSAP animations
     const backBtn = ref(null)
@@ -136,67 +140,50 @@ export default {
     let playAnimation
     
     const fetchStation = async () => {
-      loading.value = true
-      error.value = false
-      try {
-        const response = await stationService.getStationById(props.id)
-        station.value = response.data
-      } catch (err) {
+      const slug = route.params.id
+      if (!slug) {
         error.value = true
-        console.error('Error fetching station:', err)
-      } finally {
-        loading.value = false
+        return
+      }
+      
+      // Ensure brands are loaded
+      if (brandsStore.getEntries.length === 0) {
+        await brandsStore.fetchAll()
+      }
+      
+      const brand = brandsStore.getBrandBySlug(slug)
+      if (!brand) {
+        error.value = true
+        return
+      }
+      
+      // Map brand to station format
+      station.value = {
+        id: brand.id,
+        name: brand.localizedName?.en || brand.slugName,
+        slug: brand.slugName,
+        genre: brand.managedBy || 'Radio',
+        description: brand.description || '',
+        color: brand.color || '#FF4757',
+        imageUrl: `https://picsum.photos/300/300?random=${brand.id.charCodeAt(0) % 10}`,
+        audioUrl: getStreamUrl(brand.slugName),
+        isOnline: brand.status === 'ON_LINE',
+        status: brand.status,
+        currentSong: {
+          title: brand.status === 'ON_LINE' ? 'Streaming Live' : 'Offline',
+          artist: brand.country || 'Unknown',
+          tags: [brand.country, brand.managedBy, brand.status].filter(Boolean)
+        }
       }
     }
     
     const togglePlay = () => {
       if (!station.value) return
       
-      audioPlayer.togglePlay(station.value.audioUrl, station.value)
-      isPlaying.value = audioPlayer.getStatus().isPlaying
-      
-      if (isPlaying.value) {
-        // Animate play button to pause state
-        if (playBtn.value) {
-          gsap.to(playBtn.value, {
-            scale: 0.9,
-            duration: 0.1,
-            yoyo: true,
-            repeat: 1,
-            ease: 'power2.inOut'
-          })
-        }
-        
-        // Show now playing indicator
-        if (nowPlaying.value) {
-          gsap.fromTo(nowPlaying.value, 
-            { opacity: 0, y: 10 },
-            { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }
-          )
-        }
-        
-        // Animate audio wave
-        gsap.to('.audio-wave span', {
-          scaleY: 1.5,
-          duration: 0.3,
-          stagger: 0.1,
-          yoyo: true,
-          repeat: -1,
-          ease: 'power2.inOut'
-        })
+      if (audioStore.currentStation?.id === station.value.id) {
+        audioStore.togglePlayback()
       } else {
-        // Hide now playing indicator
-        if (nowPlaying.value) {
-          gsap.to(nowPlaying.value, {
-            opacity: 0,
-            duration: 0.3,
-            ease: 'power2.in'
-          })
-        }
-        
-        // Stop audio wave animation
-        gsap.killTweensOf('.audio-wave span')
-        gsap.set('.audio-wave span', { scaleY: 1 })
+        audioStore.playStation(station.value)
       }
     }
     
@@ -330,7 +317,8 @@ export default {
     if (this.ctx) {
       this.ctx.revert()
     }
-    audioPlayer.stop()
+    const audioStore = useAudioStore()
+    audioStore.stopPlayback()
   }
 }
 </script>
