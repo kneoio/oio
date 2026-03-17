@@ -28,7 +28,7 @@ export const useBrandsStore = defineStore('brandsStore', () => {
     error.value = null
     
     try {
-      const response = await brandsApi.get('/info/all-brands')
+      const response = await brandsApi.get('/aivox/info/all-brands')
       if (response?.data) {
         nextTick(() => {
           brands.value = response.data
