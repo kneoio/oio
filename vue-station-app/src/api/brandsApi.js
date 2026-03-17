@@ -7,7 +7,7 @@ if (!apiServer) {
 }
 
 const unsecuredClient = axios.create({
-  baseURL: `${apiServer}`,
+  baseURL: `${apiServer}/aivox`,
   withCredentials: false,
 })
 
