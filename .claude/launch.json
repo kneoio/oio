@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "vue-station-app",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["./node_modules/vite/bin/vite.js", "--port", "8092", "--host"],
+      "port": 8092,
+      "cwd": "vue-station-app"
+    }
+  ]
+}
