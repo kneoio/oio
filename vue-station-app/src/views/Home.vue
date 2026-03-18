@@ -1,5 +1,5 @@
 <template>
-  <div class="home">
+  <div class="home" :class="{ 'station-expanded': !!expandedStation }">
     <header class="header" v-show="!expandedStation">
       <h2 ref="title">m i x p l a</h2>
     </header>
@@ -121,6 +121,7 @@
             v-for="station in stations"
             :key="station.id"
             class="station-card"
+            :style="{ '--color': station.color }"
             @click="goToStation(station, $event)"
             ref="stationCards"
           >
@@ -160,6 +161,7 @@
                 >{{ tag }}</span>
               </div>
             </div>
+            <span class="card-led" :class="{ online: station.isOnline }" :title="station.isOnline ? 'Live' : 'Offline'"></span>
           </div>
         </div>
       </template>
@@ -235,7 +237,7 @@ export default {
           currentSong: {
             title:  brand.status === 'ON_LINE' ? 'Streaming Live' : 'Offline',
             artist: brand.country || 'Unknown',
-            tags:   [brand.country, brand.managedBy, brand.status].filter(Boolean)
+            tags:   [brand.country].filter(Boolean)
           }
         }))
       } catch (err) {
@@ -403,6 +405,10 @@ export default {
   padding: 2rem;
 }
 
+.home.station-expanded {
+  padding: 1rem;
+}
+
 .header {
   text-align: center;
   color: white;
@@ -424,63 +430,63 @@ export default {
 
 /* ── grid ────────────────────────────────────────────────── */
 .station-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 /* ── card ────────────────────────────────────────────────── */
 .station-card {
-  --blur: 1.75rem;
+  --blur: 1rem;
   --box-blur: calc(0.5 * var(--blur));
   --glow: var(--color, #ff4757);
 
-  border-radius: 12px;
-  border: 4px solid currentColor;
+  border-radius: 10px;
+  border: 2px solid currentColor;
   box-shadow:
-    inset 0 0 0 2px rgba(0,0,0,0.15),
-          0 0 0 2px rgba(0,0,0,0.15),
+    inset 0 0 0 1px rgba(0,0,0,0.15),
+          0 0 0 1px rgba(0,0,0,0.15),
     inset 0 0 var(--box-blur) var(--glow),
           0 0 var(--box-blur) var(--glow);
   color: var(--color, white);
   cursor: pointer;
-  transition: transform 0.3s ease, --blur 0.3s ease;
+  transition: transform 0.25s ease, --blur 0.25s ease, background 0.2s ease;
   overflow: hidden;
   background: rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
 
 .station-card:hover {
-  transform: translateY(-8px);
-  --blur: 2.5rem;
+  transform: translateX(4px);
+  --blur: 1.6rem;
+  background: rgba(255,255,255,0.04);
 }
 
-.station-card:nth-child(1) { --color: #4FC3F7; filter: saturate(175%); }
-.station-card:nth-child(2) { --color: #FF6B6B; filter: brightness(110%); }
-.station-card:nth-child(3) { --color: #4A148C; filter: brightness(125%); }
-.station-card:nth-child(4) { --color: #FFD93D; filter: saturate(200%); }
-.station-card:nth-child(5) { --color: #6C63FF; filter: brightness(105%); }
-.station-card:nth-child(6) { --color: #00BCD4; filter: brightness(110%); }
 
 /* ── station image area ──────────────────────────────────── */
 .station-image {
   position: relative;
-  height: 200px;
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
   overflow: hidden;
 }
 
 .mood-gradient {
   width: 100%;
   height: 100%;
-  background: transparent;
+  background: color-mix(in srgb, var(--color, #ff4757) 30%, transparent);
   transition: transform 0.3s ease;
 }
 
-.station-card:hover .mood-gradient { transform: scale(1.1); }
+.station-card:hover .mood-gradient { transform: scale(1.15); }
 
 .play-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.3);
+  background: rgba(0,0,0,0.2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -488,15 +494,15 @@ export default {
   transition: background 0.3s ease;
 }
 
-.station-card:hover .play-overlay { background: rgba(0,0,0,0.5); }
+.station-card:hover .play-overlay { background: rgba(0,0,0,0.45); }
 .play-overlay .play-btn { pointer-events: auto; }
 
 /* ── play button ─────────────────────────────────────────── */
 .play-btn {
-  width: 56px;
-  height: 56px;
-  background: rgba(0,0,0,0.9);
-  border: 2px solid rgba(255,255,255,0.35);
+  width: 36px;
+  height: 36px;
+  background: rgba(0,0,0,0.85);
+  border: 1.5px solid rgba(255,255,255,0.35);
   border-radius: 50%;
   color: white;
   cursor: pointer;
@@ -504,14 +510,14 @@ export default {
   align-items: center;
   justify-content: center;
   transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
 }
 
 .play-btn:hover {
   transform: scale(1.18);
   background: rgba(0,0,0,1);
   border-color: rgba(255,255,255,0.8);
-  box-shadow: 0 0 20px rgba(255,255,255,0.15);
+  box-shadow: 0 0 14px rgba(255,255,255,0.15);
 }
 
 .play-btn:active {
@@ -525,37 +531,50 @@ export default {
 }
 
 @keyframes pulse-play {
-  0%, 100% { box-shadow: 0 0 20px rgba(255,71,87,0.8), 0 0 40px rgba(255,71,87,0.5); }
-  50%       { box-shadow: 0 0 30px rgba(255,71,87,1),   0 0 60px rgba(255,71,87,0.7); }
+  0%, 100% { box-shadow: 0 0 12px rgba(255,71,87,0.8), 0 0 24px rgba(255,71,87,0.5); }
+  50%       { box-shadow: 0 0 20px rgba(255,71,87,1),   0 0 40px rgba(255,71,87,0.7); }
 }
 
-.play-btn svg { width: 22px; height: 22px; margin-left: 2px; }
+.play-btn svg { width: 14px; height: 14px; margin-left: 1px; }
 
 /* ── card info ───────────────────────────────────────────── */
 .station-info {
-  padding: 1.5rem;
+  flex: 1;
+  padding: 0 1rem;
   color: inherit;
-  text-align: center;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .station-info h3 {
-  font-size: 1.3rem;
-  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  margin: 0;
   font-weight: 700;
   text-shadow: 0 0 var(--blur) var(--glow);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 120px;
+  max-width: 180px;
 }
 
 .current-song {
-  font-size: 0.85rem;
-  opacity: 0.8;
-  margin-bottom: 0.8rem;
+  font-size: 0.75rem;
+  opacity: 0.6;
+  margin: 0;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tags {
   display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  justify-content: center;
+  gap: 0.35rem;
+  flex-wrap: nowrap;
+  margin-right: 0.5rem;
 }
 
 .tag {
@@ -591,10 +610,34 @@ export default {
   background: rgba(0,188,212,0.2); color: #00BCD4; border: 1px solid #00BCD4;
 }
 
+/* ── status LED ──────────────────────────────────────────── */
+.card-led {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-right: 1.1rem;
+  background: rgba(255,255,255,0.15);
+  box-shadow: none;
+  transition: background 0.3s, box-shadow 0.3s;
+}
+
+.card-led.online {
+  background: #00e676;
+  box-shadow: 0 0 6px 2px rgba(0,230,118,0.7), 0 0 12px rgba(0,230,118,0.4);
+  animation: led-pulse 2s ease-in-out infinite;
+}
+
+@keyframes led-pulse {
+  0%, 100% { box-shadow: 0 0 5px 2px rgba(0,230,118,0.7), 0 0 10px rgba(0,230,118,0.4); }
+  50%       { box-shadow: 0 0 9px 3px rgba(0,230,118,0.9), 0 0 18px rgba(0,230,118,0.6); }
+}
+
 /* ── DETAIL PANEL ────────────────────────────────────────── */
 .station-detail {
   position: relative;
   width: 100%;
+  height: calc(100dvh - 2rem); /* fits within station-expanded padding */
   display: flex;
   flex-direction: column;
   border-radius: 12px;
@@ -605,7 +648,7 @@ export default {
     inset 0 0 40px color-mix(in srgb, var(--card-color, #FF4757) 20%, transparent),
           0 0 40px color-mix(in srgb, var(--card-color, #FF4757) 30%, transparent);
   background: rgba(0,0,0,0.5);
-  overflow: visible;
+  overflow: hidden;
 }
 
 /* close button */
@@ -639,12 +682,13 @@ export default {
 /* header */
 .detail-header {
   position: relative;
-  min-height: 320px;
+  min-height: clamp(140px, 28dvh, 320px);
   display: flex;
   align-items: flex-end;
-  gap: 2rem;
-  padding: 2.5rem;
+  gap: clamp(0.75rem, 2vw, 2rem);
+  padding: clamp(1rem, 3vw, 2.5rem);
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .detail-glow {
@@ -660,14 +704,14 @@ export default {
 
 /* play button in detail — larger */
 .detail-play-btn {
-  width: 88px;
-  height: 88px;
+  width: clamp(52px, 10vw, 88px);
+  height: clamp(52px, 10vw, 88px);
   flex-shrink: 0;
   border-width: 2.5px;
   border-color: color-mix(in srgb, var(--card-color, #FF4757) 60%, white 40%);
 }
 
-.detail-play-btn svg { width: 32px; height: 32px; margin-left: 3px; }
+.detail-play-btn svg { width: clamp(20px, 4vw, 32px); height: clamp(20px, 4vw, 32px); margin-left: 3px; }
 
 .detail-play-btn:hover {
   transform: scale(1.1);
@@ -721,7 +765,7 @@ export default {
 }
 
 .detail-name {
-  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-size: clamp(1.3rem, 5vw, 3.5rem);
   font-weight: 800;
   color: white;
   text-shadow: 0 0 40px color-mix(in srgb, var(--card-color, #FF4757) 60%, transparent);
@@ -739,10 +783,12 @@ export default {
 /* body */
 .detail-body {
   flex: 1;
-  padding: 2rem 2.5rem;
+  min-height: 0;
+  overflow-y: auto;
+  padding: clamp(0.75rem, 2vw, 2rem) clamp(0.75rem, 2.5vw, 2.5rem);
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 2rem;
+  gap: clamp(0.75rem, 2vw, 2rem);
 }
 
 .detail-section {
@@ -753,6 +799,9 @@ export default {
 
 .detail-chat {
   grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .section-label {
@@ -815,8 +864,9 @@ export default {
 }
 
 .chat-messages {
-  min-height: 120px;
-  max-height: 200px;
+  flex: 1;
+  min-height: 80px;
+  max-height: none;
   overflow-y: auto;
   border: 1px solid rgba(255,255,255,0.07);
   border-radius: 8px;
@@ -906,16 +956,16 @@ export default {
 
 /* ── loading / error ─────────────────────────────────────── */
 .loading-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .skeleton-card {
   background: #1a1a1a;
   border: 1px solid #2a2a2a;
-  border-radius: 12px;
-  height: 300px;
+  border-radius: 10px;
+  height: 64px;
   animation: skeleton-pulse 1.5s ease-in-out infinite alternate;
 }
 
@@ -947,24 +997,25 @@ export default {
 /* ── responsive ──────────────────────────────────────────── */
 @media (max-width: 768px) {
   .home { padding: 1rem; }
+  .home.station-expanded { padding: 0.5rem; }
 
-  .station-grid {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1rem;
+  .station-grid { gap: 0.4rem; }
+  .station-info { gap: 0.5rem; }
+  .station-info h3 { max-width: 120px; }
+
+  .station-detail {
+    height: calc(100dvh - 1rem);
   }
 
   .detail-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 1rem;
-    padding: 2rem 1.5rem;
-    min-height: 48vh;
+    gap: 0.75rem;
+    min-height: unset;
   }
 
   .detail-body {
     grid-template-columns: 1fr;
-    padding: 1.5rem;
-    gap: 1.5rem;
   }
 }
 </style>
