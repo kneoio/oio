@@ -256,6 +256,42 @@ export default {
       }
     }
 
+    let shakeTween = null
+    let shakeTimeout = null
+
+    const startRandomShake = () => {
+      if (!stationCards.value?.length || expandedStation.value) return
+
+      const card = stationCards.value[Math.floor(Math.random() * stationCards.value.length)]
+      if (!card) return
+
+      shakeTween = gsap.to(card, {
+        x: 'random(-3, 3)',
+        duration: 0.1,
+        repeat: 5,
+        yoyo: true,
+        ease: 'power1.inOut',
+        onComplete: () => {
+          gsap.to(card, { x: 0, duration: 0.2, ease: 'power2.out' })
+          shakeTimeout = setTimeout(startRandomShake, Math.random() * 2000 + 1000)
+        }
+      })
+    }
+
+    const stopRandomShake = () => {
+      if (shakeTween) {
+        shakeTween.kill()
+        shakeTween = null
+      }
+      if (shakeTimeout) {
+        clearTimeout(shakeTimeout)
+        shakeTimeout = null
+      }
+      if (stationCards.value?.length) {
+        stationCards.value.forEach(card => gsap.to(card, { x: 0, duration: 0.2 }))
+      }
+    }
+
     // ── open station ───────────────────────────────────────
     const goToStation = (station, event) => {
       const cardEl = event?.currentTarget
