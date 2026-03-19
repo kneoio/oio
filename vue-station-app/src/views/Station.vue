@@ -168,9 +168,10 @@ export default {
         imageUrl: `https://picsum.photos/300/300?random=${brand.id.charCodeAt(0) % 10}`,
         audioUrl: getStreamUrl(brand.slugName),
         isOnline: brand.status === 'ON_LINE',
+        isIdle:   brand.status === 'IDLE',
         status: brand.status,
         currentSong: {
-          title: brand.status === 'ON_LINE' ? 'Streaming Live' : 'Offline',
+          title: brand.status === 'ON_LINE' ? 'Streaming Live' : brand.status === 'IDLE' ? 'Idle' : 'Offline',
           artist: brand.country || 'Unknown',
           tags: [brand.country, brand.managedBy, brand.status].filter(Boolean)
         }

@@ -52,9 +52,9 @@
               </button>
             </div>
             <div class="detail-title-block">
-              <div class="detail-status-pill" :class="expandedStation.isOnline ? 'online' : 'offline'">
+              <div class="detail-status-pill" :class="expandedStation.isOnline ? 'online' : expandedStation.isIdle ? 'idle' : 'offline'">
                 <span class="status-dot-sm"></span>
-                {{ expandedStation.isOnline ? 'Live' : 'Offline' }}
+                {{ expandedStation.isOnline ? 'Live' : expandedStation.isIdle ? 'Idle' : 'Offline' }}
               </div>
               <h1 class="detail-name">{{ expandedStation.name }}</h1>
               <p class="detail-country">{{ expandedStation.djName || expandedStation.currentSong?.artist }}</p>
@@ -132,6 +132,7 @@
             v-for="station in stations"
             :key="station.id"
             class="station-card"
+            :class="{ offline: !station.isOnline && !station.isIdle }"
             :style="{ '--color': station.color }"
             @click="goToStation(station, $event)"
             ref="stationCards"
@@ -172,7 +173,7 @@
                 >{{ tag }}</span>
               </div>
             </div>
-            <span class="card-led" :class="{ online: station.isOnline }" :title="station.isOnline ? 'Live' : 'Offline'"></span>
+            <span class="card-led" :class="{ online: station.isOnline, idle: station.isIdle }" :title="station.isOnline ? 'Live' : station.isIdle ? 'Idle' : 'Offline'"></span>
           </div>
         </div>
       </template>
@@ -244,9 +245,10 @@ export default {
           color:    brand.color || '#FF4757',
           audioUrl: getStreamUrl(brand.slugName),
           isOnline: brand.status === 'ON_LINE',
+          isIdle:   brand.status === 'IDLE',
           status:   brand.status,
           currentSong: {
-            title:  brand.status === 'ON_LINE' ? 'Streaming Live' : 'Offline',
+            title:  brand.status === 'ON_LINE' ? 'Streaming Live' : brand.status === 'IDLE' ? 'Idle' : 'Offline',
             artist: brand.country || 'Unknown',
             tags:   [brand.country].filter(Boolean)
           }
@@ -503,6 +505,16 @@ export default {
   background: rgba(255,255,255,0.04);
 }
 
+.station-card.offline {
+  --glow: color-mix(in srgb, var(--color, #ff4757) 35%, transparent);
+  border-color: color-mix(in srgb, var(--color, #ff4757) 35%, transparent);
+  opacity: 0.75;
+}
+
+.station-card.offline:hover {
+  opacity: 1;
+}
+
 
 /* ── station image area ──────────────────────────────────── */
 .station-image {
@@ -667,6 +679,17 @@ export default {
   animation: led-pulse 2s ease-in-out infinite;
 }
 
+.card-led.idle {
+  background: #ffb300;
+  box-shadow: 0 0 6px 2px rgba(255,179,0,0.7), 0 0 12px rgba(255,179,0,0.4);
+  animation: led-pulse-idle 2s ease-in-out infinite;
+}
+
+@keyframes led-pulse-idle {
+  0%, 100% { box-shadow: 0 0 5px 2px rgba(255,179,0,0.7), 0 0 10px rgba(255,179,0,0.4); }
+  50%       { box-shadow: 0 0 9px 3px rgba(255,179,0,0.9), 0 0 18px rgba(255,179,0,0.6); }
+}
+
 @keyframes led-pulse {
   0%, 100% { box-shadow: 0 0 5px 2px rgba(0,230,118,0.7), 0 0 10px rgba(0,230,118,0.4); }
   50%       { box-shadow: 0 0 9px 3px rgba(0,230,118,0.9), 0 0 18px rgba(0,230,118,0.6); }
@@ -788,6 +811,12 @@ export default {
   background: rgba(255,71,87,0.15);
   color: #ff4757;
   border: 1px solid rgba(255,71,87,0.3);
+}
+
+.detail-status-pill.idle {
+  background: rgba(255,179,0,0.15);
+  color: #ffb300;
+  border: 1px solid rgba(255,179,0,0.3);
 }
 
 .status-dot-sm {
