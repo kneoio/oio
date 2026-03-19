@@ -56,7 +56,7 @@
                 <span class="status-dot-sm"></span>
                 {{ expandedStation.isOnline ? 'Live' : expandedStation.isIdle ? 'Idle' : 'Offline' }}
               </div>
-              <h1 class="detail-name">{{ expandedStation.name }}</h1>
+              <h1 class="detail-name" :style="expandedStation.titleFont ? { fontFamily: expandedStation.titleFont } : {}">{{ expandedStation.name }}</h1>
               <p class="detail-country">{{ expandedStation.djName || expandedStation.currentSong?.artist }}</p>
             </div>
           </div>
@@ -155,7 +155,7 @@
               </div>
             </div>
             <div class="station-info">
-              <h3>{{ station.name }}</h3>
+              <h3 :style="station.titleFont ? { fontFamily: station.titleFont } : {}">{{ station.name }}</h3>
               <p class="current-song">
                 <span v-if="currentStation?.id === station.id && isPlaying">
                   {{ currentSongTitle }} — {{ currentSongArtist }}
@@ -242,8 +242,9 @@ export default {
           slug:     brand.slugName,
           djName:   brand.djName || '',
           description: brand.description || '',
-          color:    brand.color || '#FF4757',
-          audioUrl: getStreamUrl(brand.slugName),
+          color:     brand.color || '#FF4757',
+          titleFont: brand.titleFont || '',
+          audioUrl:  getStreamUrl(brand.slugName),
           isOnline: brand.status === 'ON_LINE',
           isIdle:   brand.status === 'IDLE',
           status:   brand.status,
