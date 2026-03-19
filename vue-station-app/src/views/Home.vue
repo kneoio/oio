@@ -68,11 +68,6 @@
               </div>
             </div>
 
-            <div class="detail-section">
-              <span class="section-label">Managed by</span>
-              <p class="detail-meta">{{ expandedStation.genre }}</p>
-            </div>
-
             <div class="detail-section detail-chat">
               <div class="chat-dj-header">
                 <span class="chat-dj-status offline">
@@ -868,7 +863,7 @@ export default {
   min-height: 80px;
   max-height: none;
   overflow-y: auto;
-  border: 1px solid rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.35);
   border-radius: 8px;
   padding: 12px;
   background: rgba(0,0,0,0.3);
@@ -902,7 +897,7 @@ export default {
   width: 40px;
   height: 40px;
   border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.35);
   background: rgba(255,255,255,0.05);
   color: rgba(255,255,255,0.4);
   cursor: pointer;
@@ -924,7 +919,7 @@ export default {
 .chat-input {
   flex: 1;
   background: rgba(0,0,0,0.4);
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.35);
   border-radius: 8px;
   padding: 10px 14px;
   color: white;
