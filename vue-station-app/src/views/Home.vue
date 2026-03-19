@@ -41,7 +41,7 @@
                 {{ expandedStation.isOnline ? 'Live' : 'Offline' }}
               </div>
               <h1 class="detail-name">{{ expandedStation.name }}</h1>
-              <p class="detail-country">{{ expandedStation.currentSong?.artist }}</p>
+              <p class="detail-country">{{ expandedStation.djName || expandedStation.currentSong?.artist }}</p>
             </div>
           </div>
 
@@ -220,10 +220,10 @@ export default {
       try {
         await brandsStore.fetchAll()
         stations.value = brandsStore.getEntries.map(brand => ({
-          id:       brand.id,
+          id:       brand.id || brand.slugName,
           name:     brand.localizedName?.en || brand.slugName,
           slug:     brand.slugName,
-          genre:    brand.managedBy || 'Radio',
+          djName:   brand.djName || '',
           description: brand.description || '',
           color:    brand.color || '#FF4757',
           audioUrl: getStreamUrl(brand.slugName),
