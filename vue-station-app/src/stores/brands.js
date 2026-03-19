@@ -51,6 +51,23 @@ export const useBrandsStore = defineStore('brandsStore', () => {
     await fetchAllBrands()
   }
 
+  // Silently patch status fields in-place — no array replacement, no flicker
+  const patchBrands = async () => {
+    try {
+      const response = await brandsApi.get('/info/all-brands')
+      if (!response?.data) return
+      response.data.forEach(fresh => {
+        const existing = brands.value.find(b => b.slugName === fresh.slugName)
+        if (existing) {
+          existing.status = fresh.status
+          existing.popularityRate = fresh.popularityRate
+        }
+      })
+    } catch (err) {
+      console.error('Error polling brands:', err)
+    }
+  }
+
   const getBrandById = computed(() => (id) => {
     return brands.value.find(brand => brand.id === id || brand.slugName === id)
   })
@@ -68,6 +85,7 @@ export const useBrandsStore = defineStore('brandsStore', () => {
     getOfflineBrands,
     fetchAll: fetchAllBrands,
     refresh: refreshBrands,
+    patch: patchBrands,
     getBrandById,
     getBrandBySlug
   }

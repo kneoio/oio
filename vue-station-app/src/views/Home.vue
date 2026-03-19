@@ -379,10 +379,27 @@ export default {
       }
     }
 
-    // ── lifecycle ──────────────────────────────────────────
+    // ── polling ────────────────────────────────────────────
+    let pollInterval = null
+
+    const pollStations = async () => {
+      await brandsStore.patch()
+      brandsStore.getEntries.forEach(brand => {
+        const station = stations.value.find(s => s.slug === brand.slugName)
+        if (!station) return
+        station.isOnline = brand.status === 'ON_LINE'
+        station.isIdle   = brand.status === 'IDLE'
+        station.status   = brand.status
+        station.currentSong.title =
+          brand.status === 'ON_LINE' ? 'Streaming Live' :
+          brand.status === 'IDLE'    ? 'Idle'           : 'Offline'
+      })
+    }
+
     // ── lifecycle ──────────────────────────────────────────
     onMounted(async () => {
       await fetchStations()
+      pollInterval = setInterval(pollStations, 60_000)
 
       if (audioRef.value) audioStore.initializeAudio(audioRef.value)
 
@@ -408,6 +425,7 @@ export default {
     })
 
     onBeforeUnmount(() => {
+      clearInterval(pollInterval)
       window.removeEventListener('keydown', handleKeydown)
       ctx?.revert()
       audioStore.stopPlayback()
