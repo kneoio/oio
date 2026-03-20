@@ -156,13 +156,8 @@
             </div>
             <div class="station-info">
               <h3 :style="station.titleFont ? { fontFamily: station.titleFont } : {}">{{ station.name }}</h3>
-              <p class="current-song">
-                <span v-if="currentStation?.id === station.id && isPlaying">
-                  {{ currentSongTitle }} — {{ currentSongArtist }}
-                </span>
-                <span v-else>
-                  {{ station.currentSong?.title }} — {{ station.currentSong?.artist }}
-                </span>
+              <p class="current-song" v-if="currentStation?.id === station.id && isPlaying">
+                {{ currentSongTitle }} — {{ currentSongArtist }}
               </p>
               <div class="tags">
                 <span
@@ -250,8 +245,8 @@ export default {
           status:   brand.status,
           currentSong: {
             title:  brand.status === 'ON_LINE' ? 'Streaming Live' : brand.status === 'IDLE' ? 'Idle' : 'Offline',
-            artist: brand.country || 'Unknown',
-            tags:   [brand.country].filter(Boolean)
+            artist: '',
+            tags:   []
           }
         }))
       } catch (err) {
@@ -623,11 +618,11 @@ export default {
   margin: 0;
   font-weight: 700;
   text-shadow: 0 0 var(--blur) var(--glow);
-  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
+  white-space: nowrap;
   text-overflow: ellipsis;
-  min-width: 120px;
-  max-width: 180px;
 }
 
 .current-song {
@@ -1088,7 +1083,7 @@ export default {
 
   .station-grid { gap: 0.4rem; }
   .station-info { gap: 0.5rem; }
-  .station-info h3 { max-width: 120px; }
+  .station-info h3 { max-width: none; }
 
   .station-detail {
     height: calc(100dvh - 1rem);
